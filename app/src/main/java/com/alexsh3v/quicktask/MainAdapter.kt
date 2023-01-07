@@ -12,7 +12,11 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class MainAdapter(private val context: Context, private val arrayOfRows: ArrayList<Row>): RecyclerView.Adapter<MainAdapter.MyHolder>() {
+class MainAdapter(private val context: Context,
+                  private val arrayOfRows: ArrayList<Row>
+                  ): RecyclerView.Adapter<MainAdapter.MyHolder>() {
+
+    var onTaskClickListener: (TaskRow, Int) -> Unit = { _, _ -> }
 
     companion object {
         const val LOG_TAG = "MainAdapter"
@@ -96,6 +100,11 @@ class MainAdapter(private val context: Context, private val arrayOfRows: ArrayLi
         Log.d(LOG_TAG, "binding holder -> $holder at pos $position")
         val row = arrayOfRows[position]
         holder.bind(row)
+        if (holder is TaskHolder) // edit task when pressed
+            holder.itemView.setOnLongClickListener {
+                onTaskClickListener(row as TaskRow, position)
+                return@setOnLongClickListener true
+            }
     }
 
     override fun getItemCount(): Int = arrayOfRows.size

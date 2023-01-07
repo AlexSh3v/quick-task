@@ -26,7 +26,9 @@ class MainActivity : AppCompatActivity() {
         arrayOfRows.add(TextRow("Do Later", R.drawable.ic_tasks, R.color.doLater).showExtraGap())
         arrayOfRows.add(TaskRow("Nothing", "lol"))
 
-        binding.recyclerView.adapter = MainAdapter(this, arrayOfRows)
+        binding.recyclerView.adapter = MainAdapter(this, arrayOfRows).also {
+            it.onTaskClickListener = { taskRow, index -> editTaskAddDialogFragment(taskRow, index) }
+        }
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
     }
@@ -40,11 +42,28 @@ class MainActivity : AppCompatActivity() {
 
         when (item.itemId) {
             R.id.item_add -> {
-                Toast.makeText(this, "Add task", Toast.LENGTH_SHORT).show()
+                createTaskAddDialogFragment()
             }
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun createTaskAddDialogFragment() {
+        val dialog = TaskAdderFragment.createInstance { taskName, taskDesc ->
+            arrayOfRows.add(TaskRow(taskName, taskDesc))
+            binding.recyclerView.adapter?.notifyItemChanged(arrayOfRows.size)
+        }
+        dialog.show(supportFragmentManager, "DIALOG_ADD")
+    }
+
+    private fun editTaskAddDialogFragment(task: TaskRow, index: Int) {
+        val dialog = TaskAdderFragment.createInstance(task.name, task.description) { taskName, taskDesc ->
+            task.name = taskName
+            task.description = taskDesc
+            binding.recyclerView.adapter?.notifyItemChanged(index)
+        }
+        dialog.show(supportFragmentManager, "DIALOG_ADD")
     }
 
 }
