@@ -3,7 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/drawable/ic_clock.xml" value="0.166" />
+        <entry key="app/src/main/res/drawable/ic_tasks_done.xml" value="0.166" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/recycler_view_task_row.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/recycler_view_text_row.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/test.xml" value="0.221875" />
       </map>
     </option>
   </component>
