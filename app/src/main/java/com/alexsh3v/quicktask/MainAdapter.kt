@@ -13,10 +13,11 @@ import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
 class MainAdapter(private val context: Context,
-                  private val arrayOfRows: ArrayList<Row>
+                  private val arrayOfRows: ArrayList<TaskRow>
                   ): RecyclerView.Adapter<MainAdapter.MyHolder>(), ItemTouchHelperAdapter {
 
     var onTaskClickListener: (TaskRow, Int) -> Unit = { _, _ -> }
@@ -102,7 +103,6 @@ class MainAdapter(private val context: Context,
     // On every new type update 2 methods below
     override fun getItemViewType(position: Int): Int {
         return when (arrayOfRows[position]) {
-            is TextRow -> TypeText
             is TaskRow -> TypeTask
             else -> throw NoSuchFieldException("specify type above!")
         }

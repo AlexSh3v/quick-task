@@ -1,6 +1,8 @@
 package com.alexsh3v.quicktask
 
-open class Row {
+import java.io.Serializable
+
+open class Row: Serializable {
 
 }
 

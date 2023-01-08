@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 
 class TaskAdderFragment private constructor() : DialogFragment() {
@@ -50,8 +49,8 @@ class TaskAdderFragment private constructor() : DialogFragment() {
                 val taskName = taskNameEditText.text.toString()
                 val taskDescription = taskDescEditText.text.toString()
                 onPressOk(taskName, taskDescription)
-                Toast.makeText(context, "OK", Toast.LENGTH_SHORT).show()
             })
+            .setNegativeButton(android.R.string.cancel) { _, _ -> }
             .show()
     }
 
