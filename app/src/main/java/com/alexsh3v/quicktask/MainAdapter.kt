@@ -1,11 +1,14 @@
 package com.alexsh3v.quicktask
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Paint
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.RelativeLayout
@@ -14,9 +17,10 @@ import androidx.recyclerview.widget.RecyclerView
 
 class MainAdapter(private val context: Context,
                   private val arrayOfRows: ArrayList<Row>
-                  ): RecyclerView.Adapter<MainAdapter.MyHolder>() {
+                  ): RecyclerView.Adapter<MainAdapter.MyHolder>(), ItemTouchHelperAdapter {
 
     var onTaskClickListener: (TaskRow, Int) -> Unit = { _, _ -> }
+    var onDragStarted: (MyHolder) -> Unit = {_ -> }
 
     companion object {
         const val LOG_TAG = "MainAdapter"
@@ -28,10 +32,29 @@ class MainAdapter(private val context: Context,
         abstract fun bind(row: Row)
     }
 
-    class TaskHolder(private val context: Context, private val itemView: View): MyHolder(context, itemView) {
+    class TaskHolder(private val context: Context, itemView: View): MyHolder(context, itemView) {
         private val taskNameTextView: TextView = itemView.findViewById(R.id.taskNameTextView)
         private val taskDescTextView: TextView = itemView.findViewById(R.id.taskDescTextView)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
+        private val dragImageView: ImageView = itemView.findViewById(R.id.dragImageView)
+
+        fun onViewLongPressed(callback: () -> Unit) {
+            itemView.setOnLongClickListener {
+                callback()
+                return@setOnLongClickListener true
+            }
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        fun onDragButtonTouchedDown(callback: () -> Unit) {
+            dragImageView.setOnTouchListener { _, motionEvent ->
+                if (MotionEvent.ACTION_DOWN == motionEvent.action) {
+                    callback()
+                }
+                return@setOnTouchListener false
+            }
+
+        }
 
         override fun bind(row: Row) {
             val taskRow: TaskRow = row as TaskRow
@@ -99,14 +122,49 @@ class MainAdapter(private val context: Context,
     override fun onBindViewHolder(holder: MyHolder, position: Int) {
         Log.d(LOG_TAG, "binding holder -> $holder at pos $position")
         val row = arrayOfRows[position]
+        startAnimation(holder, position)
         holder.bind(row)
-        if (holder is TaskHolder) // edit task when pressed
-            holder.itemView.setOnLongClickListener {
-                onTaskClickListener(row as TaskRow, position)
-                return@setOnLongClickListener true
-            }
+        when (holder) {
+            is TaskHolder -> bind(holder as TaskHolder, row as TaskRow, position)
+            is TextHolder -> bind(holder as TextHolder, row as TextRow, position)
+        }
+    }
+
+    private fun startAnimation(holder: MyHolder, position: Int) {
+        val animation = AnimationUtils.loadAnimation(context, android.R.anim.fade_in)
+        holder.itemView.startAnimation(animation)
+    }
+
+    private fun bind(holder: TaskHolder, row: TaskRow, position: Int) {
+        // edit task when hold
+        holder.onViewLongPressed { onTaskClickListener(row, position) }
+        // drag task between others
+        holder.onDragButtonTouchedDown { onDragStarted(holder) }
+    }
+
+    private fun bind(textHolder: TextHolder, row: TextRow, position: Int) {
+
     }
 
     override fun getItemCount(): Int = arrayOfRows.size
+
+    override fun onItemMove(fromPosition: Int, toPosition: Int) {
+        val previousRow = arrayOfRows.removeAt(fromPosition)
+        arrayOfRows.add(if (toPosition > fromPosition) toPosition - 1 else toPosition, previousRow)
+        notifyItemMoved(fromPosition, toPosition)
+    }
+
+    override fun onItemMoveFromNowToLater(fromPosition: Int, toPosition: Int) {
+        val firstRow = arrayOfRows[fromPosition]
+        arrayOfRows[fromPosition] = arrayOfRows[toPosition]
+        arrayOfRows[toPosition] = firstRow
+        notifyItemChanged(toPosition)
+        notifyItemChanged(fromPosition)
+    }
+
+    override fun onItemDismiss(position: Int) {
+        arrayOfRows.removeAt(position)
+        notifyItemRemoved(position)
+    }
 
 }

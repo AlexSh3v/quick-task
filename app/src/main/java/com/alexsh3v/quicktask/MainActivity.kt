@@ -3,11 +3,9 @@ package com.alexsh3v.quicktask
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.alexsh3v.quicktask.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -21,16 +19,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        arrayOfRows.add(TextRow("Do Now", R.drawable.ic_clock, R.color.doNow))
-        arrayOfRows.add(TaskRow("Do something", "Ha-ha"))
-        arrayOfRows.add(TextRow("Do Later", R.drawable.ic_tasks, R.color.doLater).showExtraGap())
-        arrayOfRows.add(TaskRow("Nothing", "lol"))
+        arrayOfRows.add(TaskRow("Task 1", "desc 1"))
+        arrayOfRows.add(TaskRow("Task 2", "desc 2"))
+        arrayOfRows.add(TaskRow("Task 3", "desc 3"))
+        arrayOfRows.add(TaskRow("Task 4", "desc 4"))
 
-        binding.recyclerView.adapter = MainAdapter(this, arrayOfRows).also {
-            it.onTaskClickListener = { taskRow, index -> editTaskAddDialogFragment(taskRow, index) }
-        }
+        val mainAdapter = MainAdapter(this, arrayOfRows)
+        mainAdapter.onTaskClickListener = { taskRow, index -> editTaskAddDialogFragment(taskRow, index) }
+        binding.recyclerView.adapter = mainAdapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
+        // Attach Drag & Swipe helper
+        val touchCallback = ItemTouchHelperCallback(mainAdapter)
+        val touchHelper = ItemTouchHelper(touchCallback)
+        touchHelper.attachToRecyclerView(binding.recyclerView)
+        mainAdapter.onDragStarted = { viewHolder -> touchHelper.startDrag(viewHolder) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
