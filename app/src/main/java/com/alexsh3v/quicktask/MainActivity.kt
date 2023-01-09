@@ -16,6 +16,7 @@ import kotlin.collections.ArrayList
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        const val LOG_TAG = "MainActivity"
         const val APP_PREFERENCE = "myTasks"
         const val TASKS_PREF_STRING = "ArrayListOfRows"
     }
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         // Attach Drag & Swipe helper
         val touchCallback = ItemTouchHelperCallback(mainAdapter)
         val touchHelper = ItemTouchHelper(touchCallback)
+        mainAdapter.touchHelper = touchHelper
         touchHelper.attachToRecyclerView(binding.recyclerView)
         mainAdapter.onDragStarted = { viewHolder -> touchHelper.startDrag(viewHolder) }
     }
@@ -79,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun editTaskAddDialogFragment(task: TaskRow, index: Int) {
+        Log.d(LOG_TAG, "EDIT TASK: Task(name=${task.name}, desc=${task.description}) at index=$index")
         val dialog = TaskAdderFragment.createInstance(task.name, task.description) { taskName, taskDesc ->
             task.name = taskName
             task.description = taskDesc

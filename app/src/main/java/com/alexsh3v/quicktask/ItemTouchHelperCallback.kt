@@ -25,7 +25,7 @@ class ItemTouchHelperCallback(private val itemTouchHelperAdapter: ItemTouchHelpe
         target: RecyclerView.ViewHolder
     ): Boolean {
         Log.d(LOG_TAG, "onMove:  $viewHolder  ->  $target")
-        itemTouchHelperAdapter.onItemMove(viewHolder.adapterPosition, target.adapterPosition)
+        itemTouchHelperAdapter.onItemMove(viewHolder, target, viewHolder.adapterPosition, target.adapterPosition)
         return true
     }
 

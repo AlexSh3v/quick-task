@@ -14,12 +14,14 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 
 class MainAdapter(private val context: Context,
                   private val arrayOfRows: ArrayList<TaskRow>
                   ): RecyclerView.Adapter<MainAdapter.MyHolder>(), ItemTouchHelperAdapter {
 
+    lateinit var touchHelper: ItemTouchHelper
     var onTaskClickListener: (TaskRow, Int) -> Unit = { _, _ -> }
     var onDragStarted: (MyHolder) -> Unit = {_ -> }
 
@@ -38,12 +40,19 @@ class MainAdapter(private val context: Context,
         private val taskDescTextView: TextView = itemView.findViewById(R.id.taskDescTextView)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
         private val dragImageView: ImageView = itemView.findViewById(R.id.dragImageView)
+        private val editImageView: ImageView = itemView.findViewById(R.id.editImageView)
+
+        val text: String
+            get() {
+                return "${taskNameTextView.text} -- ${taskDescTextView.text}"
+            }
 
         fun onViewLongPressed(callback: () -> Unit) {
-            itemView.setOnLongClickListener {
-                callback()
-                return@setOnLongClickListener true
-            }
+//            itemView.setOnLongClickListener {
+//                callback()
+//                return@setOnLongClickListener true
+//            }
+            editImageView.setOnClickListener { callback() }
         }
 
         @SuppressLint("ClickableViewAccessibility")
@@ -123,11 +132,7 @@ class MainAdapter(private val context: Context,
         Log.d(LOG_TAG, "binding holder -> $holder at pos $position")
         val row = arrayOfRows[position]
         startAnimation(holder, position)
-        holder.bind(row)
-        when (holder) {
-            is TaskHolder -> bind(holder as TaskHolder, row as TaskRow, position)
-            is TextHolder -> bind(holder as TextHolder, row as TextRow, position)
-        }
+        bind(holder as TaskHolder, row, position)
     }
 
     private fun startAnimation(holder: MyHolder, position: Int) {
@@ -136,30 +141,39 @@ class MainAdapter(private val context: Context,
     }
 
     private fun bind(holder: TaskHolder, row: TaskRow, position: Int) {
+        holder.bind(row)
         // edit task when hold
-        holder.onViewLongPressed { onTaskClickListener(row, position) }
+        holder.onViewLongPressed {
+            val i = holder.adapterPosition
+            onTaskClickListener(arrayOfRows[i], i)
+        }
         // drag task between others
         holder.onDragButtonTouchedDown { onDragStarted(holder) }
     }
 
-    private fun bind(textHolder: TextHolder, row: TextRow, position: Int) {
-
-    }
-
     override fun getItemCount(): Int = arrayOfRows.size
 
-    override fun onItemMove(fromPosition: Int, toPosition: Int) {
-        val previousRow = arrayOfRows.removeAt(fromPosition)
-        arrayOfRows.add(if (toPosition > fromPosition) toPosition - 1 else toPosition, previousRow)
-        notifyItemMoved(fromPosition, toPosition)
-    }
+    override fun onItemMove(
+        viewHolder: RecyclerView.ViewHolder,
+        target: RecyclerView.ViewHolder,
+        fromPosition: Int,
+        toPosition: Int
+    ) {
+        Log.d(LOG_TAG, "######### ${(viewHolder as TaskHolder).text}   --->   ${(target as TaskHolder).text}")
+        Log.d(LOG_TAG, "######### $fromPosition $toPosition")
+        val nextRow = arrayOfRows[toPosition]
+        arrayOfRows.add(toPosition, arrayOfRows.removeAt(fromPosition))
+//        val targetPosition = viewHolder.adapterPosition
 
-    override fun onItemMoveFromNowToLater(fromPosition: Int, toPosition: Int) {
-        val firstRow = arrayOfRows[fromPosition]
-        arrayOfRows[fromPosition] = arrayOfRows[toPosition]
-        arrayOfRows[toPosition] = firstRow
-        notifyItemChanged(toPosition)
-        notifyItemChanged(fromPosition)
+//        Log.d(LOG_TAG, "$newPosition $fromPosition")
+//        Log.d(LOG_TAG, "######### $newPosition $targetPosition")
+        notifyItemMoved(fromPosition, toPosition)
+        // edit task when hold
+//        bind(viewHolder as TaskHolder, previousRow, toPosition)
+//        bind(target as TaskHolder, nextRow, fromPosition)
+//        (viewHolder as TaskHolder).onViewLongPressed { onTaskClickListener(previousRow, newPosition) }
+//        (target as TaskHolder).onViewLongPressed { onTaskClickListener(nextRow, targetPosition) }
+
     }
 
     override fun onItemDismiss(position: Int) {
