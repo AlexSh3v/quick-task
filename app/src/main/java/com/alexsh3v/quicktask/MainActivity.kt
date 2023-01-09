@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         const val LOG_TAG = "MainActivity"
         const val APP_PREFERENCE = "myTasks"
         const val TASKS_PREF_STRING = "ArrayListOfRows"
+        const val DIALOG_ADD_TASK = "DIALOG_ADD"
     }
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -28,22 +29,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Load tasks
         sharedPreferences = getSharedPreferences(APP_PREFERENCE, Context.MODE_PRIVATE)
-        loadTasks()
-//
-//        tasks.add(TaskRow("Task 1", "desc 1"))
-//        tasks.add(TaskRow("Task 2", "desc 2"))
-//        tasks.add(TaskRow("Task 3", "desc 3"))
-//        tasks.add(TaskRow("Task 4", "desc 4"))
-//
-        dumpTasks()
+        loadTasksFromSharedPreference()
 
+        // Create adapter
         val mainAdapter = MainAdapter(this, tasks)
         mainAdapter.onTaskClickListener = { taskRow, index -> editTaskAddDialogFragment(taskRow, index) }
+        mainAdapter.onTasksDataChanged = { saveTasksToSharedPreference() }
+
+        // View layout
         binding.recyclerView.adapter = mainAdapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
@@ -61,8 +59,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle option buttons
 
         when (item.itemId) {
+            // Add task button
             R.id.item_add -> {
                 createTaskAddDialogFragment()
             }
@@ -72,31 +72,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createTaskAddDialogFragment() {
+        Log.d(LOG_TAG, "CREATE TASK")
         val dialog = TaskAdderFragment.createInstance { taskName, taskDesc ->
             tasks.add(TaskRow(taskName, taskDesc))
             binding.recyclerView.adapter?.notifyItemChanged(tasks.size)
-            dumpTasks()
+            saveTasksToSharedPreference()
         }
-        dialog.show(supportFragmentManager, "DIALOG_ADD")
+        dialog.show(supportFragmentManager, DIALOG_ADD_TASK)
     }
 
     private fun editTaskAddDialogFragment(task: TaskRow, index: Int) {
+        // Edit task with existing task name and description
         Log.d(LOG_TAG, "EDIT TASK: Task(name=${task.name}, desc=${task.description}) at index=$index")
         val dialog = TaskAdderFragment.createInstance(task.name, task.description) { taskName, taskDesc ->
             task.name = taskName
             task.description = taskDesc
             binding.recyclerView.adapter?.notifyItemChanged(index)
-            dumpTasks()
+            saveTasksToSharedPreference()
         }
-        dialog.show(supportFragmentManager, "DIALOG_ADD")
+        dialog.show(supportFragmentManager, DIALOG_ADD_TASK)
     }
 
-    private fun dumpTasks() {
+    private fun saveTasksToSharedPreference() {
         val editor = sharedPreferences.edit()
         val gson = Gson()
-//        val array = Array<Row>(arrayOfRows.size) {
-//            return@Array arrayOfRows[it]
-//        }
         val json = gson.toJson(DumpOfTasks(tasks))
         editor.putString(TASKS_PREF_STRING, json)
         editor.apply()
@@ -108,15 +107,15 @@ class MainActivity : AppCompatActivity() {
         editor.apply()
     }
 
-    private fun loadTasks() {
-//        clearTasks()
+    private fun loadTasksFromSharedPreference() {
         val gson = Gson()
         val json = sharedPreferences.getString(TASKS_PREF_STRING, "")
-        if (json == "")
+
+        if (json == "") // skip if string isn't found
             return
         tasks = gson.fromJson(json, DumpOfTasks::class.java).tasks
 
-        Log.d("LOAD_TASK", tasks.toString())
+        Log.d(LOG_TAG, "Loaded tasks array: ${tasks.toString()}")
     }
 
 }

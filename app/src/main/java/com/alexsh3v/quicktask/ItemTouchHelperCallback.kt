@@ -25,12 +25,12 @@ class ItemTouchHelperCallback(private val itemTouchHelperAdapter: ItemTouchHelpe
         target: RecyclerView.ViewHolder
     ): Boolean {
         Log.d(LOG_TAG, "onMove:  $viewHolder  ->  $target")
-        itemTouchHelperAdapter.onItemMove(viewHolder, target, viewHolder.adapterPosition, target.adapterPosition)
+        itemTouchHelperAdapter.onItemMoved(viewHolder.adapterPosition, target.adapterPosition)
         return true
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        itemTouchHelperAdapter.onItemDismiss(viewHolder.adapterPosition)
+        itemTouchHelperAdapter.onItemSwiped(viewHolder.adapterPosition)
     }
 
     override fun isLongPressDragEnabled(): Boolean = false
