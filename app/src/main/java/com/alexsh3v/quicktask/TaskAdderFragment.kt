@@ -9,7 +9,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 
-class TaskAdderFragment private constructor() : DialogFragment() {
+class TaskAdderFragment: DialogFragment() {
 
     private lateinit var onPressOk: (String, String) -> Unit
     private var presetStrings: () -> Unit = {}
