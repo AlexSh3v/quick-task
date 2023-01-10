@@ -36,6 +36,8 @@ class MainAdapter(private val context: Context,
         private val dragImageView: ImageView = itemView.findViewById(R.id.dragImageView)
         private val editImageView: ImageView = itemView.findViewById(R.id.editImageView)
 
+        var onCheckBoxDataChanged: (Boolean) -> Unit = { _ -> }
+
         fun onViewLongPressed(callback: () -> Unit) {
 //            itemView.setOnLongClickListener {
 //                callback()
@@ -70,8 +72,8 @@ class MainAdapter(private val context: Context,
             } else {
                 taskNameTextColorResource = R.color.task_name
                 taskDescTextColorResource = R.color.task_description
-                taskNamePaintFlags = taskNameTextView.paintFlags.xor(Paint.STRIKE_THRU_TEXT_FLAG)
-                taskDescPaintFlags = taskDescTextView.paintFlags.xor(Paint.STRIKE_THRU_TEXT_FLAG)
+                taskNamePaintFlags = 0
+                taskDescPaintFlags = 0
             }
 
             taskNameTextView.setTextColor(context.getColor(taskNameTextColorResource))
@@ -87,7 +89,11 @@ class MainAdapter(private val context: Context,
             taskNameTextView.text = taskRow.name
             taskDescTextView.text = taskRow.description
             checkBox.isChecked = taskRow.isChecked
-            checkBox.setOnCheckedChangeListener { _, state -> setupCheckBox(taskRow, state) }
+            setupCheckBox(taskRow, taskRow.isChecked)
+            checkBox.setOnCheckedChangeListener { _, state ->
+                setupCheckBox(taskRow, state)
+                onCheckBoxDataChanged(state)
+            }
         }
 
     }
@@ -106,6 +112,7 @@ class MainAdapter(private val context: Context,
         val row = arrayOfRows[position]
         startAnimation(holder, position)
         holder.bind(row)
+        holder.onCheckBoxDataChanged = { _ -> onTasksDataChanged() }
         // edit task when hold
         holder.onViewLongPressed {
             val i = holder.adapterPosition
